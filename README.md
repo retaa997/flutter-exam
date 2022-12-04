@@ -1,10 +1,10 @@
 # doctor
 
-A new Flutter project.
+Tech387 - ProductArena exam
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+[Preview App](https://www.youtube.com/watch?v=amPAUBbMbIQ)
 
 A few resources to get you started if this is your first Flutter project:
 
