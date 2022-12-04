@@ -1,6 +1,11 @@
+import 'dart:async';
+import 'dart:developer';
+
 import 'package:doctor/fakedata/fakedata.dart';
 import 'package:doctor/home/home_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,6 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool hidePw = true;
   bool valErr = false;
+  var connectionError = false;
   String errortxt = "";
 
   late final _passwordFieldFocus = FocusNode()
@@ -25,6 +31,23 @@ class _LoginScreenState extends State<LoginScreen> {
     ..addListener(() {
       setState(() {});
     });
+
+  _checkInternetConnection() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.none) {
+      connectionError = true;
+      valErr = false;
+    } else if (connectivityResult == ConnectivityResult.mobile) {
+      connectionError = false;
+    } else if (connectivityResult == ConnectivityResult.wifi) {
+      connectionError = false;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     SizedBox(height: 5),
-                    if (valErr)
+                    if (valErr || connectionError)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         child: Container(
@@ -125,17 +148,25 @@ class _LoginScreenState extends State<LoginScreen> {
                     Container(
                       width: MediaQuery.of(context).size.width,
                       child: ElevatedButton(
-                        onPressed: () {
-                          if (_emailController.text == FakeData().email &&
+                        onPressed: () async {
+                          await _checkInternetConnection();
+                          if (connectionError) {
+                            print(connectionError);
+                            setState(() {
+                              errortxt = "Nema Internet konekcije!";
+                            });
+                          } else if (_emailController.text ==
+                                  FakeData().email &&
                               _passwordController.text == FakeData().password &&
                               _formKey.currentState!.validate()) {
                             valErr = false;
+                            connectionError = false;
                             Navigator.pushAndRemoveUntil(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => HomeScreen()),
                                 (route) => false);
-                          } else {
+                          } else if (!connectionError) {
                             setState(() {
                               valErr = true;
                               errortxt = "Pogresan email ili password!";
